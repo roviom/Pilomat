@@ -210,7 +210,7 @@ All clients stay synchronized within 0.1 second!
 ## Legacy Note
 
 **Pilomat III** (2024) - Web-based, JSON-configurable
-**Pilomat II** (199x?) - Microcontroller-based
+**Pilomat II** (1992) - 8051 Microcontroller-based
 **Pilomat I** (1977) - TTL logic, the original! 🏆
 
 ---
