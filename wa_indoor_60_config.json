@@ -1,0 +1,226 @@
+{
+  "name": "WA Indoor 60 Arrows (AB-AB Format)",
+  "displayMode": "center",
+  "maxCounter": 999,
+  "states": [
+    {
+      "name": "Preparation",
+      "duration": 10,
+      "actions": {}
+    },
+    {
+      "name": "Line A - Shooting (3 arrows)",
+      "duration": 120,
+      "actions": {}
+    },
+    {
+      "name": "Line A - Warning",
+      "duration": 30,
+      "actions": {}
+    },
+    {
+      "name": "Retrieve Arrows",
+      "duration": 180,
+      "actions": {}
+    },
+    {
+      "name": "Line B - Shooting (3 arrows)",
+      "duration": 120,
+      "actions": {}
+    },
+    {
+      "name": "Line B - Warning",
+      "duration": 30,
+      "actions": {}
+    },
+    {
+      "name": "Retrieve Arrows",
+      "duration": 180,
+      "actions": {}
+    }
+  ],
+  "events": [
+    {
+      "name": "preparation_start",
+      "trigger": "counter",
+      "value": 0,
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 10 },
+        "setCountDown": { "center": true }
+      }
+    },
+    {
+      "name": "preparation_5s_warning",
+      "trigger": "counter",
+      "value": 5,
+      "actions": {
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_a_shooting_start",
+      "trigger": "counter",
+      "value": 10,
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 120 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "name": "line_a_30s_warning",
+      "trigger": "counter",
+      "value": 100,
+      "actions": {
+        "trafficLight": "yellow",
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_a_shooting_end",
+      "trigger": "counter",
+      "value": 160,
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 180 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 3, "frequency": 2 }
+      }
+    },
+    {
+      "name": "retrieve_30s_warning",
+      "trigger": "counter",
+      "value": 310,
+      "actions": {
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_b_shooting_start",
+      "trigger": "counter",
+      "value": 340,
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 120 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "name": "line_b_30s_warning",
+      "trigger": "counter",
+      "value": 430,
+      "actions": {
+        "trafficLight": "yellow",
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_b_shooting_end",
+      "trigger": "counter",
+      "value": 490,
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 180 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 3, "frequency": 2 }
+      }
+    },
+    {
+      "name": "final_retrieve_30s_warning",
+      "trigger": "counter",
+      "value": 640,
+      "actions": {
+        "buzzer": { "duration": 0.5 }
+      }
+    }
+  ],
+  "buttons": [
+    {
+      "label": "START END (3+3)",
+      "class": "start",
+      "actions": {
+        "resetCounter": true,
+        "resetState": true,
+        "trafficLight": "red",
+        "setDisplay": { "center": 10 },
+        "setCountDown": { "center": true }
+      }
+    },
+    {
+      "label": "EMERGENCY STOP",
+      "class": "reset",
+      "actions": {
+        "trafficLight": "red",
+        "pauseDisplay": ["center"],
+        "buzzer": { "cycles": 5, "frequency": 3 }
+      }
+    },
+    {
+      "label": "RESUME",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "resumeDisplay": ["center"]
+      }
+    },
+    {
+      "label": "LINE A - SHOOT",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 120 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "label": "LINE B - SHOOT",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 120 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "label": "WARNING 30s",
+      "class": "",
+      "actions": {
+        "trafficLight": "yellow",
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "label": "STOP SHOOTING",
+      "class": "",
+      "actions": {
+        "trafficLight": "red",
+        "buzzer": { "cycles": 3, "frequency": 2 }
+      }
+    },
+    {
+      "label": "RETRIEVE ARROWS",
+      "class": "",
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 180 },
+        "setCountDown": { "center": true },
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "label": "TEST SYSTEM",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 5 },
+        "setCountDown": { "center": true },
+        "buzzer": { "duration": 0.3 }
+      }
+    }
+  ]
+}

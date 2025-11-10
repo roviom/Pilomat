@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pilomat III</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 950px;
+            width: 100%;
+        }
+        
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .container {
+                max-width: 90vw;
+                padding: 30px;
+            }
+            
+            .counter-display {
+                font-size: 140px !important;
+            }
+            
+            .light {
+                width: 100px !important;
+                height: 100px !important;
+            }
+        }
+        
+        .timer-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+        }
+        
+        .timer-display {
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .timer-display.hidden {
+            display: none;
+        }
+        
+        .timer-label {
+            font-size: 24px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .counter-display {
+            font-size: 120px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .counter-display.paused {
+            color: #95a5a6;
+        }
+        
+        .counter-display.active {
+            color: #27ae60;
+        }
+        
+        .traffic-light {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .light {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid #34495e;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .light.red {
+            background: #555;
+        }
+        
+        .light.red.active {
+            background: #e74c3c;
+            box-shadow: 0 0 30px #e74c3c, inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .light.yellow {
+            background: #555;
+        }
+        
+        .light.yellow.active {
+            background: #f39c12;
+            box-shadow: 0 0 30px #f39c12, inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .light.green {
+            background: #555;
+        }
+        
+        .light.green.active {
+            background: #2ecc71;
+            box-shadow: 0 0 30px #2ecc71, inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .buzzer-icon {
+            font-size: 60px;
+            margin: 20px 0;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        
+        .buzzer-icon.visible {
+            opacity: 1;
+        }
+        
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .control-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .control-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+        
+        .control-button.reset {
+            background: #e74c3c;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .control-button.reset:hover {
+            background: #c0392b;
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        }
+        
+        .control-button:active {
+            transform: translateY(0);
+        }
+        
+        .status-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #34495e;
+        }
+        
+        .config-upload {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #95a5a6;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-label:hover {
+            background: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: #2c3e50; margin-bottom: 20px;">Pilomat III</h1>
+        
+        <div class="timer-container" id="timerContainer">
+            <div class="timer-display" id="leftTimerDisplay">
+                <div class="timer-label">LEFT</div>
+                <div class="counter-display" id="leftCounter">000</div>
+            </div>
+            <div class="timer-display" id="centerTimerDisplay">
+                <div class="counter-display" id="centerCounter">000</div>
+            </div>
+            <div class="timer-display" id="rightTimerDisplay">
+                <div class="timer-label">RIGHT</div>
+                <div class="counter-display" id="rightCounter">000</div>
+            </div>
+        </div>
+        
+        <div class="traffic-light" id="trafficLight">
+            <div class="light red active" id="redLight"></div>
+            <div class="light yellow" id="yellowLight"></div>
+            <div class="light green" id="greenLight"></div>
+        </div>
+        
+        <div class="buzzer-icon" id="buzzer">🔔</div>
+        
+        <div class="button-container" id="buttonContainer">
+            <!-- Buttons will be dynamically added here -->
+        </div>
+        
+        <div class="status-info" id="statusInfo">
+            Mode: <span id="modeStatus">Local</span> | 
+            State: <span id="currentState">Initializing</span>
+        </div>
+        
+        <div class="config-upload">
+            <input type="file" id="configFile" class="file-input" accept=".json">
+            <label for="configFile" class="file-label">📁 Load Configuration JSON</label>
+            <div style="margin-top: 10px; font-size: 12px; color: #7f8c8d;">
+                <span id="configFileName">No config loaded</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default configuration matching original behavior
+        const defaultConfig = {
+            "name": "Traffic Light Timer",
+            "displayMode": "center",
+            "maxCounter": 120,
+            "states": [
+                {
+                    "name": "red",
+                    "duration": 30,
+                    "actions": {}
+                },
+                {
+                    "name": "green",
+                    "duration": 30,
+                    "actions": {}
+                },
+                {
+                    "name": "yellow",
+                    "duration": 30,
+                    "actions": {}
+                },
+                {
+                    "name": "red2",
+                    "duration": 30,
+                    "actions": {}
+                }
+            ],
+            "events": [
+                {
+                    "name": "state_red",
+                    "trigger": "counter",
+                    "value": 0,
+                    "actions": {
+                        "trafficLight": "red",
+                        "setDisplay": { "center": 0 }
+                    }
+                },
+                {
+                    "name": "state_green",
+                    "trigger": "counter",
+                    "value": 30,
+                    "actions": {
+                        "trafficLight": "green"
+                    }
+                },
+                {
+                    "name": "state_yellow",
+                    "trigger": "counter",
+                    "value": 60,
+                    "actions": {
+                        "trafficLight": "yellow"
+                    }
+                },
+                {
+                    "name": "state_red2",
+                    "trigger": "counter",
+                    "value": 90,
+                    "actions": {
+                        "trafficLight": "red"
+                    }
+                },
+                {
+                    "name": "buzzer",
+                    "trigger": "counter",
+                    "value": 120,
+                    "actions": {
+                        "buzzer": {
+                            "duration": 0.5
+                        }
+                    }
+                }
+            ],
+            "buttons": [
+                {
+                    "label": "RESET",
+                    "class": "reset",
+                    "actions": {
+                        "resetCounter": true,
+                        "resetState": true,
+                        "trafficLight": "red",
+                        "setDisplay": { "center": 0 },
+                        "buzzer": {
+                            "cycles": 3,
+                            "frequency": 2
+                        }
+                    }
+                }
+            ]
+        };
+        
+        let config = defaultConfig;
+        let counterTenths = 0; // Master counter (always running)
+        let currentStateIndex = 0;
+        let stateStartTime = 0;
+        let timerInterval = null;
+        let pollInterval = null;
+        let isResetting = false;
+        let useLocalMode = true;
+        let lastPollSuccess = 0;
+        
+        // Display timers (can be paused independently)
+        let displayTimers = {
+            left: { value: 0, paused: false, countDown: true, maxValue: 120 },
+            center: { value: 0, paused: false, countDown: false, maxValue: 120 },
+            right: { value: 0, paused: false, countDown: true, maxValue: 120 }
+        };
+        
+        const leftTimerDisplay = document.getElementById('leftTimerDisplay');
+        const centerTimerDisplay = document.getElementById('centerTimerDisplay');
+        const rightTimerDisplay = document.getElementById('rightTimerDisplay');
+        const leftCounter = document.getElementById('leftCounter');
+        const centerCounter = document.getElementById('centerCounter');
+        const rightCounter = document.getElementById('rightCounter');
+        const redLight = document.getElementById('redLight');
+        const yellowLight = document.getElementById('yellowLight');
+        const greenLight = document.getElementById('greenLight');
+        const buzzer = document.getElementById('buzzer');
+        const buttonContainer = document.getElementById('buttonContainer');
+        const statusInfo = document.getElementById('statusInfo');
+        const modeStatus = document.getElementById('modeStatus');
+        const currentStateSpan = document.getElementById('currentState');
+        const configFile = document.getElementById('configFile');
+        const configFileName = document.getElementById('configFileName');
+        
+        function updateDisplayMode() {
+            const mode = config.displayMode || 'center';
+            
+            leftTimerDisplay.classList.add('hidden');
+            centerTimerDisplay.classList.add('hidden');
+            rightTimerDisplay.classList.add('hidden');
+            
+            if (mode === 'center') {
+                centerTimerDisplay.classList.remove('hidden');
+            } else if (mode === 'left-right') {
+                leftTimerDisplay.classList.remove('hidden');
+                rightTimerDisplay.classList.remove('hidden');
+            } else if (mode === 'all') {
+                leftTimerDisplay.classList.remove('hidden');
+                centerTimerDisplay.classList.remove('hidden');
+                rightTimerDisplay.classList.remove('hidden');
+            }
+        }
+        
+        function updateTimerDisplay(timer, element) {
+            const displayValue = displayTimers[timer].value;
+            element.textContent = displayValue.toString().padStart(3, '0');
+            
+            // Visual feedback for active/paused timers
+            if (displayTimers[timer].paused) {
+                element.classList.add('paused');
+                element.classList.remove('active');
+            } else if (config.displayMode === 'left-right') {
+                element.classList.add('active');
+                element.classList.remove('paused');
+            } else {
+                element.classList.remove('paused', 'active');
+            }
+        }
+        
+        function updateAllDisplays() {
+            updateTimerDisplay('left', leftCounter);
+            updateTimerDisplay('center', centerCounter);
+            updateTimerDisplay('right', rightCounter);
+        }
+        
+        function updateTrafficLight(color) {
+            redLight.classList.remove('active');
+            yellowLight.classList.remove('active');
+            greenLight.classList.remove('active');
+            
+            if (color === 'red') {
+                redLight.classList.add('active');
+            } else if (color === 'green') {
+                greenLight.classList.add('active');
+            } else if (color === 'yellow') {
+                yellowLight.classList.add('active');
+            }
+        }
+        
+        function showBuzzer(duration = 0.5) {
+            buzzer.classList.add('visible');
+            setTimeout(() => {
+                buzzer.classList.remove('visible');
+            }, duration * 1000);
+        }
+        
+        function showBuzzerCycles(cycles, frequency) {
+            let count = 0;
+            const period = 1000 / frequency;
+            const interval = setInterval(() => {
+                if (count % 2 === 0) {
+                    buzzer.classList.add('visible');
+                } else {
+                    buzzer.classList.remove('visible');
+                }
+                count++;
+                if (count >= cycles * 2) {
+                    clearInterval(interval);
+                    buzzer.classList.remove('visible');
+                }
+            }, period / 2);
+        }
+        
+        function executeActions(actions) {
+            if (!actions) return;
+            
+            if (actions.trafficLight) {
+                updateTrafficLight(actions.trafficLight);
+            }
+            
+            if (actions.buzzer) {
+                if (actions.buzzer.cycles && actions.buzzer.frequency) {
+                    showBuzzerCycles(actions.buzzer.cycles, actions.buzzer.frequency);
+                } else if (actions.buzzer.duration) {
+                    showBuzzer(actions.buzzer.duration);
+                }
+            }
+            
+            if (actions.resetCounter) {
+                counterTenths = 0;
+            }
+            
+            if (actions.resetState) {
+                currentStateIndex = 0;
+                stateStartTime = counterTenths;
+            }
+            
+            // Display control actions
+            if (actions.setDisplay) {
+                Object.keys(actions.setDisplay).forEach(timer => {
+                    if (displayTimers[timer]) {
+                        displayTimers[timer].value = actions.setDisplay[timer];
+                        displayTimers[timer].maxValue = actions.setDisplay[timer];
+                    }
+                });
+                updateAllDisplays();
+            }
+            
+            if (actions.pauseDisplay) {
+                actions.pauseDisplay.forEach(timer => {
+                    if (displayTimers[timer]) {
+                        displayTimers[timer].paused = true;
+                    }
+                });
+                updateAllDisplays();
+            }
+            
+            if (actions.resumeDisplay) {
+                actions.resumeDisplay.forEach(timer => {
+                    if (displayTimers[timer]) {
+                        displayTimers[timer].paused = false;
+                    }
+                });
+                updateAllDisplays();
+            }
+            
+            if (actions.setCountDown) {
+                Object.keys(actions.setCountDown).forEach(timer => {
+                    if (displayTimers[timer]) {
+                        displayTimers[timer].countDown = actions.setCountDown[timer];
+                    }
+                });
+            }
+        }
+        
+        function checkEvents() {
+            if (!config.events) return;
+            
+            const seconds = Math.floor(counterTenths / 10);
+            const prevSeconds = Math.floor((counterTenths - 1) / 10);
+            
+            // Only trigger events when the second actually changes to avoid repeated triggers
+            if (seconds === prevSeconds) return;
+            
+            config.events.forEach(event => {
+                if (event.trigger === 'counter' && seconds === event.value) {
+                    executeActions(event.actions);
+                }
+            });
+        }
+        
+        function updateState() {
+            if (!config.states || config.states.length === 0) return;
+            
+            const currentState = config.states[currentStateIndex];
+            const elapsedSeconds = Math.floor((counterTenths - stateStartTime) / 10);
+            
+            // Update state name for display only - all actions happen via events
+            if (elapsedSeconds >= currentState.duration) {
+                currentStateIndex = (currentStateIndex + 1) % config.states.length;
+                stateStartTime = counterTenths;
+                const newState = config.states[currentStateIndex];
+                currentStateSpan.textContent = newState.name;
+            }
+        }
+        
+        function updateDisplayTimers() {
+            // Update each display timer independently
+            Object.keys(displayTimers).forEach(timer => {
+                if (!displayTimers[timer].paused) {
+                    if (displayTimers[timer].countDown) {
+                        displayTimers[timer].value = Math.max(0, displayTimers[timer].value - 1);
+                    } else {
+                        displayTimers[timer].value++;
+                    }
+                }
+            });
+            updateAllDisplays();
+        }
+        
+        function tick() {
+            if (isResetting) return;
+            
+            counterTenths++;
+            
+            // Update display timers every 10 ticks (1 second)
+            if (counterTenths % 10 === 0) {
+                updateDisplayTimers();
+            }
+            
+            const seconds = Math.floor(counterTenths / 10);
+            
+            checkEvents();
+            updateState();
+            
+            if (config.maxCounter && seconds > config.maxCounter) {
+                counterTenths = 0;
+                currentStateIndex = 0;
+                stateStartTime = 0;
+                const firstState = config.states[0];
+                executeActions(firstState.actions);
+                currentStateSpan.textContent = firstState.name;
+            }
+        }
+        
+        function startLocalTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            timerInterval = setInterval(tick, 100);
+        }
+        
+        function handleButtonClick(button) {
+            if (useLocalMode) {
+                isResetting = button.actions.resetCounter || button.actions.resetState;
+                executeActions(button.actions);
+                if (isResetting) {
+                    setTimeout(() => {
+                        isResetting = false;
+                    }, 1500);
+                }
+            } else {
+                fetch('/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ button: button.label })
+                })
+                .then(response => response.json())
+                .catch(err => {
+                    console.error('Trigger error:', err);
+                    isResetting = button.actions.resetCounter || button.actions.resetState;
+                    executeActions(button.actions);
+                    if (isResetting) {
+                        setTimeout(() => {
+                            isResetting = false;
+                        }, 1500);
+                    }
+                });
+            }
+        }
+        
+        function createButtons() {
+            buttonContainer.innerHTML = '';
+            
+            if (!config.buttons) return;
+            
+            config.buttons.forEach(button => {
+                const btn = document.createElement('button');
+                btn.className = 'control-button' + (button.class ? ' ' + button.class : '');
+                btn.textContent = button.label;
+                btn.onclick = () => handleButtonClick(button);
+                buttonContainer.appendChild(btn);
+            });
+        }
+        
+        function loadConfiguration(newConfig) {
+            config = newConfig;
+            counterTenths = 0;
+            currentStateIndex = 0;
+            stateStartTime = 0;
+            
+            // Reset display timers
+            displayTimers.left.value = 0;
+            displayTimers.left.paused = false;
+            displayTimers.center.value = 0;
+            displayTimers.center.paused = false;
+            displayTimers.right.value = 0;
+            displayTimers.right.paused = false;
+            
+            updateDisplayMode();
+            updateAllDisplays();
+            createButtons();
+            
+            if (config.states && config.states.length > 0) {
+                executeActions(config.states[0].actions);
+                currentStateSpan.textContent = config.states[0].name;
+            }
+            
+            console.log('Configuration loaded:', config.name);
+        }
+        
+        function syncStateFromServer(data) {
+            const prevCounterTenths = counterTenths;
+            
+            counterTenths = data.counterTenths;
+            currentStateIndex = data.stateIndex || 0;
+            
+            if (data.displayTimers) {
+                Object.keys(data.displayTimers).forEach(timer => {
+                    if (displayTimers[timer]) {
+                        displayTimers[timer].value = data.displayTimers[timer].value;
+                        displayTimers[timer].paused = data.displayTimers[timer].paused;
+                    }
+                });
+                updateAllDisplays();
+            }
+            
+            if (data.trafficLight) {
+                updateTrafficLight(data.trafficLight);
+            }
+            
+            if (data.buzzerActive && !isResetting) {
+                buzzer.classList.add('visible');
+            } else if (!data.buzzerActive && !isResetting) {
+                buzzer.classList.remove('visible');
+            }
+            
+            if (data.currentState) {
+                currentStateSpan.textContent = data.currentState;
+            }
+        }
+        
+        function pollServer() {
+            fetch('/state')
+                .then(response => {
+                    if (!response.ok) throw new Error('Server response not OK');
+                    return response.json();
+                })
+                .then(data => {
+                    lastPollSuccess = Date.now();
+                    
+                    if (useLocalMode) {
+                        useLocalMode = false;
+                        if (timerInterval) {
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                        }
+                        modeStatus.textContent = 'Synchronized';
+                        console.log('Switched to synchronized mode');
+                    }
+                    
+                    syncStateFromServer(data);
+                })
+                .catch(err => {
+                    if (!useLocalMode && (Date.now() - lastPollSuccess > 2000 || lastPollSuccess === 0)) {
+                        useLocalMode = true;
+                        modeStatus.textContent = 'Local';
+                        console.log('Server not available, running in local mode');
+                        startLocalTimer();
+                    }
+                });
+        }
+        
+        function startPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+            
+            pollInterval = setInterval(pollServer, 100);
+            pollServer();
+        }
+        
+        configFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const newConfig = JSON.parse(event.target.result);
+                    loadConfiguration(newConfig);
+                    configFileName.textContent = file.name;
+                } catch (err) {
+                    alert('Error parsing JSON: ' + err.message);
+                    console.error('JSON parse error:', err);
+                }
+            };
+            reader.readAsText(file);
+        });
+        
+        // Initialize
+        loadConfiguration(defaultConfig);
+        startPolling();
+        if (useLocalMode) {
+            startLocalTimer();
+        }
+    </script>
+</body>
+</html>

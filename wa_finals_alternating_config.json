@@ -1,0 +1,142 @@
+{
+  "name": "WA Finals - Individual Alternating (20s per arrow)",
+  "displayMode": "left-right",
+  "maxCounter": 9999,
+  "states": [
+    {
+      "name": "Match Active",
+      "duration": 9999,
+      "actions": {}
+    }
+  ],
+  "events": [
+    {
+      "name": "match_start_left",
+      "trigger": "counter",
+      "value": 0,
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "left": 20, "right": 20 },
+        "setCountDown": { "left": true, "right": true },
+        "pauseDisplay": ["right"],
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    }
+  ],
+  "buttons": [
+    {
+      "label": "START MATCH (LEFT)",
+      "class": "start",
+      "actions": {
+        "resetCounter": true,
+        "resetState": true,
+        "trafficLight": "green",
+        "setDisplay": { "left": 20, "right": 20 },
+        "setCountDown": { "left": true, "right": true },
+        "pauseDisplay": ["right"],
+        "resumeDisplay": ["left"],
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "label": "START MATCH (RIGHT)",
+      "class": "start",
+      "actions": {
+        "resetCounter": true,
+        "resetState": true,
+        "trafficLight": "green",
+        "setDisplay": { "left": 20, "right": 20 },
+        "setCountDown": { "left": true, "right": true },
+        "pauseDisplay": ["left"],
+        "resumeDisplay": ["right"],
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "label": "◄ SWITCH TO LEFT",
+      "class": "",
+      "actions": {
+        "setDisplay": { "left": 20 },
+        "setCountDown": { "left": true },
+        "pauseDisplay": ["right"],
+        "resumeDisplay": ["left"]
+      }
+    },
+    {
+      "label": "SWITCH TO RIGHT ►",
+      "class": "",
+      "actions": {
+        "setDisplay": { "right": 20 },
+        "setCountDown": { "right": true },
+        "pauseDisplay": ["left"],
+        "resumeDisplay": ["right"]
+      }
+    },
+    {
+      "label": "⏸ PAUSE MATCH",
+      "class": "",
+      "actions": {
+        "trafficLight": "yellow",
+        "pauseDisplay": ["left", "right"]
+      }
+    },
+    {
+      "label": "▶ RESUME LEFT",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "resumeDisplay": ["left"],
+        "pauseDisplay": ["right"]
+      }
+    },
+    {
+      "label": "▶ RESUME RIGHT",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "resumeDisplay": ["right"],
+        "pauseDisplay": ["left"]
+      }
+    },
+    {
+      "label": "⚠ EMERGENCY STOP",
+      "class": "reset",
+      "actions": {
+        "trafficLight": "red",
+        "pauseDisplay": ["left", "right"],
+        "buzzer": { "cycles": 5, "frequency": 3 }
+      }
+    },
+    {
+      "label": "END MATCH",
+      "class": "reset",
+      "actions": {
+        "trafficLight": "red",
+        "pauseDisplay": ["left", "right"],
+        "buzzer": { "cycles": 3, "frequency": 2 }
+      }
+    },
+    {
+      "label": "RESET BOTH 20s",
+      "class": "",
+      "actions": {
+        "setDisplay": { "left": 20, "right": 20 },
+        "pauseDisplay": ["left", "right"]
+      }
+    },
+    {
+      "label": "ADD 10s LEFT",
+      "class": "",
+      "actions": {
+        "setDisplay": { "left": 30 }
+      }
+    },
+    {
+      "label": "ADD 10s RIGHT",
+      "class": "",
+      "actions": {
+        "setDisplay": { "right": 30 }
+      }
+    }
+  ]
+}

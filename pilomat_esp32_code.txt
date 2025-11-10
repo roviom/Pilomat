@@ -1,0 +1,320 @@
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include <SPIFFS.h>
+#include <ArduinoJson.h>
+
+// WiFi credentials
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+
+// Web server on port 80
+AsyncWebServer server(80);
+
+// State machine variables
+unsigned long masterCounterTenths = 0;  // Master counter in tenths of seconds
+unsigned long lastTickTime = 0;
+int currentStateIndex = 0;
+unsigned long stateStartTime = 0;
+
+// Display timers
+struct DisplayTimer {
+  int value;
+  bool paused;
+  bool countDown;
+  int maxValue;
+};
+
+DisplayTimer displayTimers[3] = {
+  {0, false, true, 120},   // left
+  {0, false, false, 120},  // center
+  {0, false, true, 120}    // right
+};
+
+// Traffic light state
+String currentTrafficLight = "red";
+bool buzzerActive = false;
+bool isResetting = false;
+
+// Configuration
+DynamicJsonDocument config(8192);
+bool configLoaded = false;
+
+void setup() {
+  Serial.begin(115200);
+  
+  // Initialize SPIFFS
+  if(!SPIFFS.begin(true)) {
+    Serial.println("SPIFFS Mount Failed");
+    return;
+  }
+  
+  // Load configuration from SPIFFS
+  loadConfiguration();
+  
+  // Connect to WiFi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+  
+  // Serve the HTML page
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/index.html", "text/html");
+  });
+  
+  // State endpoint - returns current state as JSON
+  server.on("/state", HTTP_GET, [](AsyncWebServerRequest *request){
+    DynamicJsonDocument doc(2048);
+    
+    doc["counterTenths"] = masterCounterTenths;
+    doc["stateIndex"] = currentStateIndex;
+    doc["trafficLight"] = currentTrafficLight;
+    doc["buzzerActive"] = buzzerActive;
+    doc["currentState"] = getCurrentStateName();
+    
+    // Add display timers
+    JsonObject timers = doc.createNestedObject("displayTimers");
+    JsonObject left = timers.createNestedObject("left");
+    left["value"] = displayTimers[0].value;
+    left["paused"] = displayTimers[0].paused;
+    
+    JsonObject center = timers.createNestedObject("center");
+    center["value"] = displayTimers[1].value;
+    center["paused"] = displayTimers[1].paused;
+    
+    JsonObject right = timers.createNestedObject("right");
+    right["value"] = displayTimers[2].value;
+    right["paused"] = displayTimers[2].paused;
+    
+    String response;
+    serializeJson(doc, response);
+    request->send(200, "application/json", response);
+  });
+  
+  // Trigger endpoint - handles button presses
+  server.on("/trigger", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL,
+    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+      DynamicJsonDocument doc(1024);
+      deserializeJson(doc, data);
+      
+      String buttonLabel = doc["button"].as<String>();
+      handleButtonTrigger(buttonLabel);
+      
+      request->send(200, "application/json", "{\"status\":\"ok\"}");
+    });
+  
+  // Configuration upload endpoint
+  server.on("/upload-config", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL,
+    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+      // Save uploaded configuration
+      File file = SPIFFS.open("/config.json", "w");
+      if(file) {
+        file.write(data, len);
+        file.close();
+        loadConfiguration();
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+      } else {
+        request->send(500, "application/json", "{\"status\":\"error\"}");
+      }
+    });
+  
+  server.begin();
+  Serial.println("HTTP server started");
+  
+  lastTickTime = millis();
+}
+
+void loop() {
+  unsigned long currentTime = millis();
+  
+  // Update every 100ms (0.1 second)
+  if (currentTime - lastTickTime >= 100) {
+    lastTickTime = currentTime;
+    
+    if (!isResetting) {
+      // Increment master counter
+      masterCounterTenths++;
+      
+      // Update display timers
+      if (masterCounterTenths % 10 == 0) {  // Every second
+        updateDisplayTimers();
+      }
+      
+      // Check for events
+      checkEvents();
+      
+      // Update state
+      updateState();
+      
+      // Check max counter
+      if (config.containsKey("maxCounter")) {
+        int maxCounter = config["maxCounter"];
+        if (masterCounterTenths / 10 > maxCounter) {
+          masterCounterTenths = 0;
+          currentStateIndex = 0;
+          stateStartTime = 0;
+        }
+      }
+    }
+  }
+}
+
+void loadConfiguration() {
+  File file = SPIFFS.open("/config.json", "r");
+  if (!file) {
+    Serial.println("Failed to open config file, using default");
+    // Load default configuration
+    return;
+  }
+  
+  DeserializationError error = deserializeJson(config, file);
+  file.close();
+  
+  if (error) {
+    Serial.println("Failed to parse config file");
+    return;
+  }
+  
+  configLoaded = true;
+  Serial.println("Configuration loaded successfully");
+}
+
+void updateDisplayTimers() {
+  for (int i = 0; i < 3; i++) {
+    if (!displayTimers[i].paused) {
+      if (displayTimers[i].countDown) {
+        displayTimers[i].value = max(0, displayTimers[i].value - 1);
+      } else {
+        displayTimers[i].value++;
+      }
+    }
+  }
+}
+
+void checkEvents() {
+  if (!config.containsKey("events")) return;
+  
+  int currentSeconds = masterCounterTenths / 10;
+  JsonArray events = config["events"].as<JsonArray>();
+  
+  for (JsonObject event : events) {
+    if (event["trigger"] == "counter" && event["value"] == currentSeconds) {
+      executeActions(event["actions"]);
+    }
+  }
+}
+
+void updateState() {
+  if (!config.containsKey("states")) return;
+  
+  JsonArray states = config["states"].as<JsonArray>();
+  if (states.size() == 0) return;
+  
+  JsonObject currentState = states[currentStateIndex];
+  int elapsedSeconds = (masterCounterTenths - stateStartTime) / 10;
+  
+  if (elapsedSeconds >= currentState["duration"].as<int>()) {
+    currentStateIndex = (currentStateIndex + 1) % states.size();
+    stateStartTime = masterCounterTenths;
+  }
+}
+
+void executeActions(JsonObject actions) {
+  // Traffic light control
+  if (actions.containsKey("trafficLight")) {
+    currentTrafficLight = actions["trafficLight"].as<String>();
+  }
+  
+  // Buzzer control
+  if (actions.containsKey("buzzer")) {
+    buzzerActive = true;
+    // Note: Buzzer timing handled by client side
+  }
+  
+  // Counter reset
+  if (actions.containsKey("resetCounter") && actions["resetCounter"]) {
+    masterCounterTenths = 0;
+  }
+  
+  // State reset
+  if (actions.containsKey("resetState") && actions["resetState"]) {
+    currentStateIndex = 0;
+    stateStartTime = masterCounterTenths;
+  }
+  
+  // Display control
+  if (actions.containsKey("setDisplay")) {
+    JsonObject displays = actions["setDisplay"];
+    if (displays.containsKey("left")) {
+      displayTimers[0].value = displays["left"];
+      displayTimers[0].maxValue = displays["left"];
+    }
+    if (displays.containsKey("center")) {
+      displayTimers[1].value = displays["center"];
+      displayTimers[1].maxValue = displays["center"];
+    }
+    if (displays.containsKey("right")) {
+      displayTimers[2].value = displays["right"];
+      displayTimers[2].maxValue = displays["right"];
+    }
+  }
+  
+  // Pause displays
+  if (actions.containsKey("pauseDisplay")) {
+    JsonArray pauseList = actions["pauseDisplay"];
+    for (JsonVariant timer : pauseList) {
+      String t = timer.as<String>();
+      if (t == "left") displayTimers[0].paused = true;
+      if (t == "center") displayTimers[1].paused = true;
+      if (t == "right") displayTimers[2].paused = true;
+    }
+  }
+  
+  // Resume displays
+  if (actions.containsKey("resumeDisplay")) {
+    JsonArray resumeList = actions["resumeDisplay"];
+    for (JsonVariant timer : resumeList) {
+      String t = timer.as<String>();
+      if (t == "left") displayTimers[0].paused = false;
+      if (t == "center") displayTimers[1].paused = false;
+      if (t == "right") displayTimers[2].paused = false;
+    }
+  }
+  
+  // Set countdown mode
+  if (actions.containsKey("setCountDown")) {
+    JsonObject countDowns = actions["setCountDown"];
+    if (countDowns.containsKey("left")) displayTimers[0].countDown = countDowns["left"];
+    if (countDowns.containsKey("center")) displayTimers[1].countDown = countDowns["center"];
+    if (countDowns.containsKey("right")) displayTimers[2].countDown = countDowns["right"];
+  }
+}
+
+void handleButtonTrigger(String buttonLabel) {
+  if (!config.containsKey("buttons")) return;
+  
+  JsonArray buttons = config["buttons"].as<JsonArray>();
+  
+  for (JsonObject button : buttons) {
+    if (button["label"] == buttonLabel) {
+      executeActions(button["actions"]);
+      break;
+    }
+  }
+}
+
+String getCurrentStateName() {
+  if (!config.containsKey("states")) return "Unknown";
+  
+  JsonArray states = config["states"].as<JsonArray>();
+  if (currentStateIndex < states.size()) {
+    return states[currentStateIndex]["name"].as<String>();
+  }
+  
+  return "Unknown";
+}

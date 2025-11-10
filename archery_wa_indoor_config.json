@@ -1,0 +1,197 @@
+{
+  "name": "WA Indoor Round - 2 Lines (AB-AB)",
+  "displayMode": "center",
+  "maxCounter": 999,
+  "states": [
+    {
+      "name": "Preparation",
+      "duration": 10,
+      "actions": {}
+    },
+    {
+      "name": "Line A - Shooting",
+      "duration": 150,
+      "actions": {}
+    },
+    {
+      "name": "Retrieve Arrows",
+      "duration": 180,
+      "actions": {}
+    },
+    {
+      "name": "Line B - Shooting",
+      "duration": 150,
+      "actions": {}
+    },
+    {
+      "name": "Retrieve Arrows",
+      "duration": 180,
+      "actions": {}
+    }
+  ],
+  "events": [
+    {
+      "name": "preparation_start",
+      "trigger": "counter",
+      "value": 0,
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 10 },
+        "setCountDown": { "center": true }
+      }
+    },
+    {
+      "name": "preparation_warning",
+      "trigger": "counter",
+      "value": 5,
+      "actions": {
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_a_start",
+      "trigger": "counter",
+      "value": 10,
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 150 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "name": "line_a_warning_30sec",
+      "trigger": "counter",
+      "value": 130,
+      "actions": {
+        "trafficLight": "yellow",
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_a_end",
+      "trigger": "counter",
+      "value": 160,
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 180 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 3, "frequency": 2 }
+      }
+    },
+    {
+      "name": "retrieve_warning",
+      "trigger": "counter",
+      "value": 320,
+      "actions": {
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_b_start",
+      "trigger": "counter",
+      "value": 340,
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 150 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "name": "line_b_warning_30sec",
+      "trigger": "counter",
+      "value": 460,
+      "actions": {
+        "trafficLight": "yellow",
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "name": "line_b_end",
+      "trigger": "counter",
+      "value": 490,
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 180 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 3, "frequency": 2 }
+      }
+    },
+    {
+      "name": "final_retrieve_warning",
+      "trigger": "counter",
+      "value": 650,
+      "actions": {
+        "buzzer": { "duration": 0.5 }
+      }
+    }
+  ],
+  "buttons": [
+    {
+      "label": "START END",
+      "class": "start",
+      "actions": {
+        "resetCounter": true,
+        "resetState": true,
+        "trafficLight": "red",
+        "setDisplay": { "center": 10 },
+        "setCountDown": { "center": true }
+      }
+    },
+    {
+      "label": "EMERGENCY STOP",
+      "class": "reset",
+      "actions": {
+        "trafficLight": "red",
+        "buzzer": { "cycles": 5, "frequency": 3 }
+      }
+    },
+    {
+      "label": "LINE A SHOOT",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 150 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "label": "LINE B SHOOT",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "setDisplay": { "center": 150 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 2, "frequency": 2 }
+      }
+    },
+    {
+      "label": "WARNING 30s",
+      "class": "",
+      "actions": {
+        "trafficLight": "yellow",
+        "buzzer": { "duration": 0.5 }
+      }
+    },
+    {
+      "label": "STOP SHOOTING",
+      "class": "",
+      "actions": {
+        "trafficLight": "red",
+        "setDisplay": { "center": 180 },
+        "setCountDown": { "center": true },
+        "buzzer": { "cycles": 3, "frequency": 2 }
+      }
+    },
+    {
+      "label": "TEST LIGHTS",
+      "class": "",
+      "actions": {
+        "trafficLight": "green",
+        "buzzer": { "duration": 0.3 }
+      }
+    }
+  ]
+}
